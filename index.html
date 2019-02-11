@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SSBP - Viewer</title>
+	<style type="text/css">
+		#dump {
+			width:45%;
+			height: 500px;
+			overflow: scroll; 
+		}
+	</style>
+	<script type="text/javascript" src="./lib/jquery-1.11.0.min.js"></script>
+	<script type="text/javascript" src="./lib/fileManager.js"></script>
+	<script type="text/javascript" src="./lib/ssbpManager.js"></script>
+	<script>
+		var $fM = lib.fileManager;
+		var $ssbpM = lib.ssbpManager;
+
+		function writeDump(msg){
+
+			var $d = $("#dump");
+			$d.html($d.text()+msg+"\n");
+		}
+
+		function toHex(num){
+			return "0x"+num.toString(16).toUpperCase();
+		}
+
+		function prettyPrintObj(obj, space){
+
+			if(space === undefined) space = "\t";
+			return JSON.stringify(obj, null, space)
+		}
+
+		function mainEntry(){
+
+			// test functions
+			writeDump("DATA = " + toHex($ssbpM.getSSBPData()));
+			writeDump("VERSION = " + toHex($ssbpM.getSSBPVersion()));
+			writeDump("Flags = " + toHex($ssbpM.getSSBPFlags()));
+			writeDump("IMG Base Dir = '" + $ssbpM.getImageBaseDir()+"' (" + toHex($ssbpM.getStringAddressImageBaseDir()) + ")");
+			writeDump("@Cells = " + toHex($ssbpM.getStartCellAddress()));
+			writeDump("@animePacks = " + toHex($ssbpM.getStartAnimePackAdress()));
+			writeDump("@effectFileList = " + toHex($ssbpM.getStartAdressEffectFileList()));
+			writeDump("num Cells = " + $ssbpM.getNumCells());
+			writeDump("num animepacks = " + $ssbpM.getNumAnimePacks());
+			writeDump("num effect file list = " + $ssbpM.getNumEffectFileList());
+			writeDump("CELLS = " +prettyPrintObj($ssbpM.getCells(), '    '));
+			writeDump("A.PACKS = " +prettyPrintObj($ssbpM.getAnimePacks(), '    '));
+			writeDump("Eff.FILES = " +prettyPrintObj($ssbpM.getEffectFiles(), '    '));
+
+			var cellCache = $ssbpM.cellCache.init('./');
+			$ssbpM.effectCache.init('./', cellCache);
+			$ssbpM.animeCache.init();
+
+
+		}
+
+		$(function(){
+
+			var fileManagerOptions = {
+
+				serverSide : false,
+				onLoadFile: function(file){
+
+					//types: text, dataUrl, arrayBuffer
+					console.log(file,"READED");
+					$ssbpM.init(file.getContent());
+
+					mainEntry();
+					
+				},
+				onSendProgress: function(event){
+
+					var sended = event.loaded;
+					var total = event.total;
+				},
+				onSendSuccess: function(data){},
+				onSendError: function(){},
+			};
+
+			$fM.registerEvents(fileManagerOptions);
+		});
+
+
+	</script>
+</head>
+<body>
+	<input type="file" name="ssbp">
+	<pre id="dump"></pre>
+</body>
+</html>
