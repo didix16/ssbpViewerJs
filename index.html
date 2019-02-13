@@ -3,11 +3,25 @@
 <head>
 	<title>SSBP - Viewer</title>
 	<style type="text/css">
+
+		input[type=file] {
+			display: block;
+		}
+
 		#dump {
 			width:45%;
 			height: 500px;
-			overflow: scroll; 
+			overflow: scroll;
+			display: inline-block;
 		}
+
+		.player-container {
+			width: 45%;
+			height: 512px;
+			border: 1px solid;
+			display: inline-block;
+		}
+
 	</style>
 	<script type="text/javascript" src="./lib/jquery-1.11.0.min.js"></script>
 	<script type="text/javascript" src="./lib/fileManager.js"></script>
@@ -15,6 +29,7 @@
 	<script>
 		var $fM = lib.fileManager;
 		var $ssbpM = lib.ssbpManager;
+		var player;
 
 		function writeDump(msg){
 
@@ -53,6 +68,7 @@
 			$ssbpM.effectCache.init('./', cellCache);
 			$ssbpM.animeCache.init();
 
+			player = new $ssbpM.Player($('.player-container'));
 
 		}
 
@@ -88,5 +104,6 @@
 <body>
 	<input type="file" name="ssbp">
 	<pre id="dump"></pre>
+	<div class="player-container"></div>
 </body>
 </html>
