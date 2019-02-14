@@ -2143,7 +2143,8 @@ void Player::setFrame(int frameNo)
 
 	const ss_u16* frameDataArray = static_cast<const ss_u16*>(ptr(frameDataIndex[frameNo]));
 
-	printf("@ of animation [%s]| frame %d data => %d\n", static_cast<const char*>(ptr(animeData->name)), frameNo, *frameDataArray);
+	const char* animeName = static_cast<const char*>(ptr(animeData->name));
+	printf("@ of animation [%s]| frame %d data => %d\n", animeName, frameNo, *frameDataArray);
 
 	DataArrayReader reader(frameDataArray);
 	
@@ -2160,6 +2161,7 @@ void Player::setFrame(int frameNo)
 
 		// optional parameters
 		int flags      = reader.readU32();
+		printf("Flags Part index %d : partIndex [%d] of animation [%s] from frameNo [%d] => %d\n", index, partIndex, animeName, frameNo, flags);
 		int cellIndex  = flags & PART_FLAG_CELL_INDEX ? reader.readS16() : init->cellIndex;
 		float x        = flags & PART_FLAG_POSITION_X ? (float)reader.readS16() : (float)init->positionX;
 #ifdef UP_MINUS
