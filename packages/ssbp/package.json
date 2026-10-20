@@ -1,0 +1,22 @@
+{
+  "name": "@ssbp/core",
+  "version": "0.1.0",
+  "description": "Platform-independent SpriteStudio SSBP v3 reader and animation evaluator",
+  "type": "module",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
