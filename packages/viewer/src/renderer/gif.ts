@@ -19,7 +19,7 @@ export async function exportAnimationGif(options: ExportGifOptions): Promise<Blo
   const { renderer, player, textures, signal, onProgress } = options;
   const { file, packName, animationName, animation, speed, loop } = player;
   if (!Number.isFinite(speed) || speed === 0)
-    throw new Error('Selecciona una velocidad distinta de cero para exportar.');
+    throw new Error('Select a nonzero playback speed to export.');
   signal.throwIfAborted();
   const canvas = document.createElement('canvas');
   canvas.style.cssText = `position:fixed;left:-100000px;top:0;width:${renderer.canvas.clientWidth}px;height:${renderer.canvas.clientHeight}px;visibility:hidden;pointer-events:none`;
@@ -28,7 +28,7 @@ export async function exportAnimationGif(options: ExportGifOptions): Promise<Blo
   let snapshot: WebGLRenderer | undefined, worker: Worker | undefined;
   let pending: { resolve(response: GifResponse): void; reject(error: Error): void } | null = null;
   const abort = () => {
-    pending?.reject(new DOMException('Exportación cancelada', 'AbortError'));
+    pending?.reject(new DOMException('Export canceled', 'AbortError'));
     pending = null;
     worker?.terminate();
   };
@@ -49,7 +49,7 @@ export async function exportAnimationGif(options: ExportGifOptions): Promise<Blo
       else promise?.resolve(event.data);
     };
     worker.onerror = (event) => {
-      pending?.reject(new Error(event.message || 'No se ha podido codificar el GIF.'));
+      pending?.reject(new Error(event.message || 'Could not encode the GIF.'));
       pending = null;
     };
     const send = (message: GifRequest, transfer: Transferable[] = []): Promise<GifResponse> => {
@@ -70,7 +70,7 @@ export async function exportAnimationGif(options: ExportGifOptions): Promise<Blo
       snapshot.render(result.commands);
       const pixels = snapshot.capturePixels();
       if (pixels.width !== width || pixels.height !== height)
-        throw new Error('Ha cambiado la resolución durante la exportación. Vuelve a intentarlo.');
+        throw new Error('The resolution changed during export. Please try again.');
       await send(
         {
           type: 'frame',
@@ -85,7 +85,7 @@ export async function exportAnimationGif(options: ExportGifOptions): Promise<Blo
       onProgress(i + 1, animation.frameCount);
     }
     const response = await send({ type: 'finish' });
-    if (response.type !== 'done') throw new Error('La codificación del GIF no ha finalizado.');
+    if (response.type !== 'done') throw new Error('GIF encoding did not finish.');
     return new Blob([response.bytes], { type: 'image/gif' });
   } finally {
     signal.removeEventListener('abort', abort);

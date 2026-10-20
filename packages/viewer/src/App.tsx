@@ -11,7 +11,7 @@ import { exportAnimationGif } from './renderer/gif';
 type Selection = { pack: string; animation: string };
 const speeds = [-1, 0.25, 0.5, 0.75, 1, 1.5, 2];
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
-const typeName = ['Nulo', 'Sprite', 'Texto', 'Instancia', 'Efecto'];
+const typeName = ['Null', 'Sprite', 'Text', 'Instance', 'Effect'];
 function saveBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob),
     a = document.createElement('a');
@@ -44,7 +44,7 @@ export function App() {
   const [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'Inspector' | 'Texturas' | 'Datos'>('Inspector'),
+  const [tab, setTab] = useState<'Inspector' | 'Textures' | 'Data'>('Inspector'),
     [zoom, setZoom] = useState(100);
   const [grid, setGrid] = useState(true),
     [origin, setOrigin] = useState(true),
@@ -121,7 +121,7 @@ export function App() {
         firstPack = next.file.project.packs.find((p) => p.animations.length);
       if (!firstPack) {
         next.release();
-        throw new Error('Este SSBP no contiene animaciones.');
+        throw new Error('This SSBP file contains no animations.');
       }
       project.current = next;
       renderer.current?.setTextures(next.textures);
@@ -417,7 +417,7 @@ export function App() {
       const p = player.current;
       if (event.key === '/') {
         event.preventDefault();
-        document.querySelector<HTMLInputElement>('input[aria-label="Buscar animación"]')?.focus();
+        document.querySelector<HTMLInputElement>('input[aria-label="Search animations"]')?.focus();
       } else if (event.code === 'Space') {
         event.preventDefault();
         togglePlayback();
@@ -558,7 +558,7 @@ export function App() {
             >
               <button
                 className="visibility icon-button"
-                aria-label={`${isHidden ? 'Mostrar' : 'Ocultar'} ${part.name}`}
+                aria-label={`${isHidden ? 'Show' : 'Hide'} ${part.name}`}
                 onClick={() => toggleHidden(part)}
               >
                 <Icon name={isHidden ? 'eye-off' : 'eye'} size={17} />
@@ -567,7 +567,7 @@ export function App() {
                 className={`tree-toggle icon-button ${closed ? 'closed' : ''}`}
                 style={{ marginLeft: Math.min(depth, 5) * 11 }}
                 disabled={!children}
-                aria-label={`${closed ? 'Expandir' : 'Contraer'} ${part.name}`}
+                aria-label={`${closed ? 'Expand' : 'Collapse'} ${part.name}`}
                 onClick={() =>
                   setCollapsed((old) => {
                     const next = new Set(old);
@@ -600,8 +600,8 @@ export function App() {
         setTexture(asset);
         setShowCells(false);
       }}
-      aria-label={`Inspeccionar ${asset.filename}`}
-      title={`Inspeccionar ${asset.filename}`}
+      aria-label={`Inspect ${asset.filename}`}
+      title={`Inspect ${asset.filename}`}
     >
       <div className="texture-heading">
         <strong>{asset.filename}</strong>
@@ -646,7 +646,7 @@ export function App() {
         }}
         multiple
         hidden
-        aria-label="Abrir carpeta SSBP"
+        aria-label="Open SSBP folder"
         onChange={(event) => {
           openFiles(event.target.files);
           event.target.value = '';
@@ -658,7 +658,7 @@ export function App() {
         multiple
         hidden
         accept=".ssbp,.png,.webp,.jpg,.jpeg"
-        aria-label="Abrir archivos SSBP y texturas"
+        aria-label="Open SSBP files and textures"
         onChange={(event) => {
           openFiles(event.target.files);
           event.target.value = '';
@@ -677,7 +677,7 @@ export function App() {
         </div>
         <span className="header-separator" />
         <div className="filename" title={loaded?.filename}>
-          {loaded?.filename ?? 'Abre un proyecto SSBP'}
+          {loaded?.filename ?? 'Open an SSBP project'}
         </div>
         <div className="header-badges">
           <span className="badge">SSBP v{loaded?.file.project.version ?? 3}</span>
@@ -688,11 +688,11 @@ export function App() {
             <div className="split-button">
               <button className="button" onClick={() => folderInput.current?.click()}>
                 <Icon name="folder" />
-                <span>Abrir carpeta</span>
+                <span>Open folder</span>
               </button>
               <button
                 className="button split-tail"
-                aria-label="Más opciones de apertura"
+                aria-label="More file options"
                 aria-expanded={fileMenu}
                 onClick={() => setFileMenu(!fileMenu)}
               >
@@ -703,7 +703,7 @@ export function App() {
               <>
                 <button
                   className="menu-dismiss"
-                  aria-label="Cerrar menú"
+                  aria-label="Close menu"
                   onClick={() => setFileMenu(false)}
                 />
                 <div className="dropdown">
@@ -714,7 +714,7 @@ export function App() {
                     }}
                   >
                     <Icon name="file" />
-                    Abrir archivos…
+                    Open files…
                   </button>
                   <button
                     onClick={() => {
@@ -723,7 +723,7 @@ export function App() {
                     }}
                   >
                     <Icon name="folder" />
-                    Abrir carpeta…
+                    Open folder…
                   </button>
                   <button
                     onClick={() => {
@@ -742,9 +742,9 @@ export function App() {
                     }}
                   >
                     <Icon name="reset" />
-                    Cargar ejemplo de Veronica
+                    Load Veronica example
                   </button>
-                  <div className="menu-note">También puedes arrastrar una carpeta aquí.</div>
+                  <div className="menu-note">You can also drag a folder here.</div>
                 </div>
               </>
             )}
@@ -755,32 +755,32 @@ export function App() {
             onClick={() => void exportPng()}
           >
             <Icon name="export" />
-            <span>{exporting ? 'Exportando…' : 'Exportar PNG'}</span>
+            <span>{exporting ? 'Exporting…' : 'Export PNG'}</span>
           </button>
           <button
             className="button gif-button"
-            aria-label="Exportar GIF"
-            title="Exportar la animación completa en GIF"
+            aria-label="Export GIF"
+            title="Export the entire animation as a GIF"
             disabled={!loaded || exporting || gifActive}
             onClick={() => void exportGif()}
           >
             <Icon name="image" />
-            <span>Exportar GIF</span>
+            <span>Export GIF</span>
           </button>
         </div>
       </header>
 
       <main className="workspace">
-        <aside className="animation-sidebar" aria-label="Animaciones">
+        <aside className="animation-sidebar" aria-label="Animations">
           <div className="sidebar-top">
-            <h2>ANIMACIONES</h2>
+            <h2>ANIMATIONS</h2>
             <label className="search">
               <Icon name="search" size={19} />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar animación"
-                aria-label="Buscar animación"
+                placeholder="Search animations"
+                aria-label="Search animations"
               />
               <kbd>/</kbd>
             </label>
@@ -830,20 +830,20 @@ export function App() {
                 p.animations.some((a) =>
                   `${p.name}/${a.name}`.toLowerCase().includes(search.toLowerCase()),
                 ),
-              ) && <p className="empty-search">No hay animaciones que coincidan con «{search}».</p>}
+              ) && <p className="empty-search">No animations match “{search}”.</p>}
           </div>
           <div className="asset-overview">
             <div className="overview-heading">
-              {loaded?.file.project.cells.length ?? 0} celdas <span>·</span>{' '}
+              {loaded?.file.project.cells.length ?? 0} cells <span>·</span>{' '}
               {loaded?.file.project.packs.length ?? 0} packs
             </div>
             {loaded?.textures[0] ? (
               <button
                 className="overview-atlas checker"
-                aria-label="Ver atlas principal"
+                aria-label="View main atlas"
                 onClick={() => setTexture(loaded.textures[0])}
               >
-                <img src={loaded.textures[0].url} alt="Atlas principal del proyecto" />
+                <img src={loaded.textures[0].url} alt="Main project atlas" />
               </button>
             ) : (
               <div className="overview-placeholder">
@@ -853,13 +853,13 @@ export function App() {
           </div>
         </aside>
 
-        <section className="viewer" aria-label="Visor de animación">
+        <section className="viewer" aria-label="Animation viewer">
           <div className="viewport-toolbar">
-            <span className="view-title">Vista</span>
+            <span className="view-title">View</span>
             <button
               className="icon-button framed"
-              title="Ajustar a la vista (C)"
-              aria-label="Ajustar a la vista"
+              title="Fit to view (C)"
+              aria-label="Fit to view"
               onClick={fit}
               disabled={!loaded}
             >
@@ -891,7 +891,7 @@ export function App() {
                 checked={grid}
                 onChange={(event) => setGrid(event.target.checked)}
               />
-              <span>Cuadrícula</span>
+              <span>Grid</span>
             </label>
             <label className="toolbar-check">
               <input
@@ -899,13 +899,13 @@ export function App() {
                 checked={origin}
                 onChange={(event) => setOrigin(event.target.checked)}
               />
-              <span>Origen</span>
+              <span>Origin</span>
             </label>
             <div className="toolbar-end">
               <button
                 className={`icon-button ${flipped ? 'toggled' : ''}`}
-                title="Invertir horizontalmente (X)"
-                aria-label="Invertir horizontalmente"
+                title="Flip horizontally (X)"
+                aria-label="Flip horizontally"
                 aria-pressed={flipped}
                 onClick={flip}
               >
@@ -913,8 +913,8 @@ export function App() {
               </button>
               <button
                 className={`icon-button ${wireframe ? 'toggled' : ''}`}
-                title="Mostrar geometría (W)"
-                aria-label="Mostrar geometría"
+                title="Show wireframe (W)"
+                aria-label="Show wireframe"
                 aria-pressed={wireframe}
                 onClick={toggleWireframe}
               >
@@ -945,22 +945,22 @@ export function App() {
               )}
               <canvas
                 ref={canvas}
-                aria-label={`Animación ${selection?.animation ?? 'SSBP'}, fotograma ${frame}`}
+                aria-label={`Animation ${selection?.animation ?? 'SSBP'}, frame ${frame}`}
               />
               <div className="stage-caption">
-                {selection?.animation ?? 'Sin animación'}
+                {selection?.animation ?? 'No animation'}
                 <span>·</span>
                 {animation
                   ? `${animation.width} × ${animation.height}`
-                  : 'Arrastra un archivo SSBP y sus texturas'}
+                  : 'Drag an SSBP file and its textures here'}
               </div>
               <div className="stage-hint">
-                Arrastrar para mover <span>·</span> Rueda para ampliar
+                Drag to pan <span>·</span> Scroll to zoom
               </div>
               {loading && (
                 <div className="loading-overlay">
                   <div className="spinner" />
-                  <span>Cargando proyecto…</span>
+                  <span>Loading project…</span>
                 </div>
               )}
             </div>
@@ -970,8 +970,8 @@ export function App() {
               <div className="transport">
                 <button
                   className="transport-button"
-                  title="Fotograma anterior (,)"
-                  aria-label="Fotograma anterior"
+                  title="Previous frame (,)"
+                  aria-label="Previous frame"
                   disabled={!loaded || frame === 0}
                   onClick={() => seek(frame - 1)}
                 >
@@ -979,8 +979,8 @@ export function App() {
                 </button>
                 <button
                   className="play-button"
-                  aria-label={playing ? 'Pausar animación' : 'Reproducir animación'}
-                  title="Reproducir / pausar (Espacio)"
+                  aria-label={playing ? 'Pause animation' : 'Play animation'}
+                  title="Play / pause (Space)"
                   onClick={togglePlayback}
                   disabled={!loaded}
                 >
@@ -988,8 +988,8 @@ export function App() {
                 </button>
                 <button
                   className="transport-button"
-                  title="Fotograma siguiente (.)"
-                  aria-label="Fotograma siguiente"
+                  title="Next frame (.)"
+                  aria-label="Next frame"
                   disabled={!loaded || frame === frameMax}
                   onClick={() => seek(frame + 1)}
                 >
@@ -1007,10 +1007,10 @@ export function App() {
                   }}
                 />
                 <span className="switch-track" />
-                <span>Bucle</span>
+                <span>Loop</span>
               </label>
               <label className="speed-control">
-                <span className="sr-only">Velocidad de reproducción</span>
+                <span className="sr-only">Playback speed</span>
                 <select
                   value={speeds.includes(speed) ? speed : 'custom'}
                   onChange={(event) => {
@@ -1030,7 +1030,7 @@ export function App() {
               </label>
               <div className="frame-counter">
                 <input
-                  aria-label="Fotograma actual"
+                  aria-label="Current frame"
                   type="number"
                   min={0}
                   max={frameMax}
@@ -1052,7 +1052,7 @@ export function App() {
                   <button
                     key={value}
                     style={{ left: `${frameMax ? (value / frameMax) * 100 : 0}%` }}
-                    aria-label={`Ir al fotograma ${value}`}
+                    aria-label={`Go to frame ${value}`}
                     onClick={() => seek(value)}
                   >
                     <span className={value <= frame ? 'passed' : ''} />
@@ -1068,7 +1068,7 @@ export function App() {
                 step={1}
                 value={frame}
                 disabled={!loaded || !frameMax}
-                aria-label="Línea de tiempo"
+                aria-label="Timeline"
                 onChange={(event) => seek(Number(event.target.value))}
                 style={
                   {
@@ -1080,9 +1080,9 @@ export function App() {
           </div>
         </section>
 
-        <aside className="inspector-sidebar" aria-label="Inspector del proyecto">
-          <div className="inspector-tabs" role="tablist" aria-label="Panel del proyecto">
-            {(['Inspector', 'Texturas', 'Datos'] as const).map((t) => (
+        <aside className="inspector-sidebar" aria-label="Project inspector">
+          <div className="inspector-tabs" role="tablist" aria-label="Project panel">
+            {(['Inspector', 'Textures', 'Data'] as const).map((t) => (
               <button
                 key={t}
                 role="tab"
@@ -1098,10 +1098,10 @@ export function App() {
             {tab === 'Inspector' && (
               <>
                 <section className="inspector-section">
-                  <h2>ANIMACIÓN</h2>
+                  <h2>ANIMATION</h2>
                   <dl className="property-list">
                     <div>
-                      <dt>Nombre</dt>
+                      <dt>Name</dt>
                       <dd>{animation?.name ?? '—'}</dd>
                     </div>
                     <div>
@@ -1113,18 +1113,18 @@ export function App() {
                       <dd>{animation?.fps ?? '—'}</dd>
                     </div>
                     <div>
-                      <dt>Fotogramas</dt>
+                      <dt>Frames</dt>
                       <dd>{animation?.frameCount ?? '—'}</dd>
                     </div>
                     <div>
-                      <dt>Tamaño</dt>
+                      <dt>Size</dt>
                       <dd>{animation ? `${animation.width} × ${animation.height}` : '—'}</dd>
                     </div>
                   </dl>
                 </section>
                 <section className="inspector-section layers-section">
                   <div className="section-heading">
-                    <h2>CAPAS</h2>
+                    <h2>LAYERS</h2>
                     <span>{pack?.parts.length ?? 0}</span>
                   </div>
                   <div className="layers-tree">{pack && renderTree(pack)}</div>
@@ -1134,7 +1134,7 @@ export function App() {
                         <strong>{partDetail.part.name}</strong>
                         <button
                           className="icon-button"
-                          aria-label="Cerrar detalle de capa"
+                          aria-label="Close layer details"
                           onClick={() => setSelectedPart(null)}
                         >
                           <Icon name="close" size={14} />
@@ -1142,25 +1142,25 @@ export function App() {
                       </div>
                       <dl>
                         <div>
-                          <dt>Tipo</dt>
+                          <dt>Type</dt>
                           <dd>{typeName[partDetail.part.type] ?? partDetail.part.type}</dd>
                         </div>
                         <div>
-                          <dt>Posición</dt>
+                          <dt>Position</dt>
                           <dd>
                             {partDetail.state.x.toFixed(1)}, {partDetail.state.y.toFixed(1)}
                           </dd>
                         </div>
                         <div>
-                          <dt>Rotación Z</dt>
+                          <dt>Z rotation</dt>
                           <dd>{partDetail.state.rotationZ.toFixed(1)}°</dd>
                         </div>
                         <div>
-                          <dt>Opacidad</dt>
+                          <dt>Opacity</dt>
                           <dd>{Math.round((partDetail.state.opacity / 255) * 100)}%</dd>
                         </div>
                         <div>
-                          <dt>Celda</dt>
+                          <dt>Cell</dt>
                           <dd>
                             {loaded?.file.project.cells[partDetail.state.cellIndex]?.name ?? '—'}
                           </dd>
@@ -1170,31 +1170,31 @@ export function App() {
                   )}
                 </section>
                 <section className="inspector-section textures-section">
-                  <h2>TEXTURAS</h2>
+                  <h2>TEXTURES</h2>
                   {loaded?.textures.map((asset) => textureCard(asset, true))}
                   {loaded && loaded.missing.length > 0 && (
                     <details className="missing-textures">
-                      <summary>{loaded.missing.length} referencias sin textura</summary>
-                      <p>Estas imágenes no están en la carpeta cargada:</p>
+                      <summary>{loaded.missing.length} missing texture references</summary>
+                      <p>These images are missing from the selected folder:</p>
                       {loaded.missing.map((m) => (
                         <code key={m.imagePath}>{m.imagePath}</code>
                       ))}
                       <button className="text-button" onClick={() => filesInput.current?.click()}>
-                        Añadir texturas…
+                        Add textures…
                       </button>
                     </details>
                   )}
                 </section>
               </>
             )}
-            {tab === 'Texturas' && (
+            {tab === 'Textures' && (
               <section className="inspector-section textures-section">
                 <div className="section-heading">
-                  <h2>ATLAS DEL PROYECTO</h2>
+                  <h2>PROJECT ATLASES</h2>
                   <span>{loaded?.textures.length ?? 0}</span>
                 </div>
                 <p className="panel-description">
-                  Selecciona una textura para ampliar el atlas y explorar sus celdas.
+                  Select a texture to enlarge its atlas and explore its cells.
                 </p>
                 {loaded?.textures.map((asset) => textureCard(asset))}
                 {loaded?.missing.map((map) => (
@@ -1203,27 +1203,27 @@ export function App() {
                     <strong>{basename(map.imagePath)}</strong>
                     <small>{map.imagePath}</small>
                     <button className="text-button" onClick={() => filesInput.current?.click()}>
-                      Añadir textura
+                      Add texture
                     </button>
                   </div>
                 ))}
               </section>
             )}
-            {tab === 'Datos' && (
+            {tab === 'Data' && (
               <>
                 <section className="inspector-section">
-                  <h2>PROYECTO SSBP</h2>
+                  <h2>SSBP PROJECT</h2>
                   <dl className="property-list">
                     <div>
-                      <dt>Versión</dt>
+                      <dt>Version</dt>
                       <dd>{loaded?.file.project.version}</dd>
                     </div>
                     <div>
-                      <dt>Tamaño</dt>
+                      <dt>Size</dt>
                       <dd>{((loaded?.file.project.byteLength ?? 0) / 1024).toFixed(1)} KB</dd>
                     </div>
                     <div>
-                      <dt>Celdas</dt>
+                      <dt>Cells</dt>
                       <dd>{loaded?.file.project.cells.length}</dd>
                     </div>
                     <div>
@@ -1231,13 +1231,13 @@ export function App() {
                       <dd>{loaded?.file.project.packs.length}</dd>
                     </div>
                     <div>
-                      <dt>Animaciones</dt>
+                      <dt>Animations</dt>
                       <dd>
                         {loaded?.file.project.packs.reduce((n, p) => n + p.animations.length, 0)}
                       </dd>
                     </div>
                     <div>
-                      <dt>Efectos</dt>
+                      <dt>Effects</dt>
                       <dd>{loaded?.file.project.effects.length}</dd>
                     </div>
                   </dl>
@@ -1255,18 +1255,18 @@ export function App() {
                     }}
                   >
                     <Icon name="download" size={16} />
-                    Descargar datos JSON
+                    Download JSON data
                   </button>
                 </section>
                 <section className="inspector-section">
-                  <h2>FOTOGRAMA {frame}</h2>
+                  <h2>FRAME {frame}</h2>
                   <dl className="property-list">
                     <div>
                       <dt>Sprites</dt>
                       <dd>{currentFrame.current?.commands.length ?? 0}</dd>
                     </div>
                     <div>
-                      <dt>Datos de usuario</dt>
+                      <dt>User data</dt>
                       <dd>{currentFrame.current?.userData.length ?? 0}</dd>
                     </div>
                   </dl>
@@ -1285,7 +1285,7 @@ export function App() {
                 </section>
                 <p className="local-note">
                   <Icon name="info" size={16} />
-                  Los archivos se procesan en tu navegador.
+                  Your files are processed in your browser.
                 </p>
               </>
             )}
@@ -1298,24 +1298,24 @@ export function App() {
           <span className={`status-dot ${missingInFrame.size ? 'warning' : ''}`} />
           <span>
             {loading
-              ? 'Cargando…'
+              ? 'Loading…'
               : loaded
                 ? missingInFrame.size
                   ? missingInFrame.size === 1
-                    ? 'Una textura no disponible en este fotograma'
-                    : `${missingInFrame.size} texturas no disponibles en este fotograma`
-                  : 'Texturas cargadas'
-                : 'Sin proyecto'}
+                    ? 'One texture is unavailable in this frame'
+                    : `${missingInFrame.size} textures are unavailable in this frame`
+                  : 'Textures loaded'
+                : 'No project'}
           </span>
           <span className="status-divider" />
-          <span>Render WebGL 2</span>
+          <span>WebGL 2 renderer</span>
         </div>
         <div className="status-right">
           <span>{animation?.fps ?? 30} FPS</span>
           <span className="status-divider" />
-          <button onClick={() => setShowHelp(true)} title="Atajos de teclado (H)">
+          <button onClick={() => setShowHelp(true)} title="Keyboard shortcuts (H)">
             <Icon name="keyboard" size={16} />
-            <span>Atajos</span>
+            <span>Shortcuts</span>
             <kbd>H</kbd>
           </button>
         </div>
@@ -1324,7 +1324,7 @@ export function App() {
         <div className="error-toast" role="alert">
           <Icon name="info" />
           <span>{error}</span>
-          <button className="icon-button" aria-label="Cerrar aviso" onClick={() => setError('')}>
+          <button className="icon-button" aria-label="Dismiss message" onClick={() => setError('')}>
             <Icon name="close" />
           </button>
         </div>
@@ -1333,8 +1333,8 @@ export function App() {
         <div className="drop-overlay">
           <div>
             <Icon name="folder" size={50} />
-            <h2>Suelta tu proyecto aquí</h2>
-            <p>Archivo SSBP y su carpeta de texturas</p>
+            <h2>Drop your project here</h2>
+            <p>An SSBP file and its texture folder</p>
           </div>
         </div>
       )}
@@ -1344,7 +1344,7 @@ export function App() {
             className="texture-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={`Textura ${texture.filename}`}
+            aria-label={`Texture ${texture.filename}`}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="modal-heading">
@@ -1352,8 +1352,7 @@ export function App() {
                 <h2>{texture.filename}</h2>
                 <p>
                   {texture.width} × {texture.height} <span>·</span>{' '}
-                  {loaded?.file.project.cells.filter((c) => c.cellMap === texture.map).length}{' '}
-                  celdas
+                  {loaded?.file.project.cells.filter((c) => c.cellMap === texture.map).length} cells
                 </p>
               </div>
               <label className="toolbar-check">
@@ -1362,11 +1361,11 @@ export function App() {
                   checked={showCells}
                   onChange={(event) => setShowCells(event.target.checked)}
                 />
-                <span>Mostrar celdas</span>
+                <span>Show cells</span>
               </label>
               <button
                 className="icon-button"
-                aria-label="Cerrar textura"
+                aria-label="Close texture"
                 onClick={() => setTexture(null)}
                 autoFocus
               >
@@ -1408,7 +1407,7 @@ export function App() {
                 }}
               >
                 <Icon name="download" size={15} />
-                Descargar original
+                Download original
               </button>
             </div>
           </section>
@@ -1420,14 +1419,14 @@ export function App() {
             className="help-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Atajos de teclado"
+            aria-label="Keyboard shortcuts"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="modal-heading">
-              <h2>Atajos de teclado</h2>
+              <h2>Keyboard shortcuts</h2>
               <button
                 className="icon-button"
-                aria-label="Cerrar atajos"
+                aria-label="Close shortcuts"
                 onClick={() => setShowHelp(false)}
                 autoFocus
               >
@@ -1436,18 +1435,18 @@ export function App() {
             </div>
             <dl className="shortcut-list">
               {[
-                ['Espacio', 'Reproducir / pausar'],
-                ['A / ←', 'Animación anterior'],
-                ['S / →', 'Animación siguiente'],
-                [', / ↓', 'Fotograma anterior'],
-                ['. / ↑', 'Fotograma siguiente'],
-                ['Mayús + ↓ / ↑', 'Primer / último fotograma'],
-                ['L', 'Activar / desactivar bucle'],
-                ['X', 'Invertir horizontalmente'],
-                ['C', 'Ajustar a la vista'],
-                ['W', 'Mostrar geometría'],
-                ['Q', 'Exportar PNG'],
-                ['1 / 2 / 3', 'Reducir / aumentar / restablecer velocidad'],
+                ['Space', 'Play / pause'],
+                ['A / ←', 'Previous animation'],
+                ['S / →', 'Next animation'],
+                [', / ↓', 'Previous frame'],
+                ['. / ↑', 'Next frame'],
+                ['Shift + ↓ / ↑', 'First / last frame'],
+                ['L', 'Toggle loop'],
+                ['X', 'Flip horizontally'],
+                ['C', 'Fit to view'],
+                ['W', 'Show wireframe'],
+                ['Q', 'Export PNG'],
+                ['1 / 2 / 3', 'Decrease / increase / reset speed'],
               ].map(([key, action]) => (
                 <div key={key}>
                   <dt>{action}</dt>
@@ -1457,9 +1456,7 @@ export function App() {
                 </div>
               ))}
             </dl>
-            <p>
-              Arrastra para mover la vista, usa la rueda para ampliar y haz doble clic para centrar.
-            </p>
+            <p>Drag to pan, scroll to zoom, and double-click to fit the view.</p>
           </section>
         </div>
       )}
@@ -1469,20 +1466,20 @@ export function App() {
             className="help-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Seleccionar proyecto"
+            aria-label="Select project"
           >
             <div className="modal-heading">
-              <h2>Selecciona un proyecto</h2>
+              <h2>Select a project</h2>
               <button
                 className="icon-button"
-                aria-label="Cancelar apertura"
+                aria-label="Cancel opening"
                 onClick={() => setChooseProject(null)}
                 autoFocus
               >
                 <Icon name="close" />
               </button>
             </div>
-            <p>La carpeta contiene varios archivos SSBP.</p>
+            <p>This folder contains multiple SSBP files.</p>
             <div className="project-choices">
               {chooseProject.paths.map((path) => (
                 <button
@@ -1504,26 +1501,24 @@ export function App() {
             className="help-modal gif-progress-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Exportando GIF"
+            aria-label="Exporting GIF"
           >
             <div className="modal-heading">
-              <h2>Exportando GIF</h2>
+              <h2>Exporting GIF</h2>
               <span className="badge">{selection?.animation}</span>
             </div>
             <div className="gif-progress-content">
-              <p>
-                Se exportan todos los fotogramas con el encuadre, la velocidad y el bucle actuales.
-              </p>
+              <p>All frames are exported using the current framing, speed, and loop setting.</p>
               <progress
-                aria-label="Progreso de exportación GIF"
+                aria-label="GIF export progress"
                 value={gifProgress.current}
                 max={gifProgress.total}
               />
               <div className="gif-progress-count" role="status">
-                {gifProgress.current} / {gifProgress.total} fotogramas
+                {gifProgress.current} / {gifProgress.total} frames
               </div>
               <button className="button" autoFocus onClick={() => gifAbort.current?.abort()}>
-                Cancelar exportación
+                Cancel export
               </button>
             </div>
           </section>

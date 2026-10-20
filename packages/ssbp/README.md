@@ -1,11 +1,11 @@
 # @ssbp/core
 
-Biblioteca ESM TypeScript para leer SpriteStudio SSBP v3 y evaluar sus animaciones. Funciona en Node.js y navegadores sin dependencias de ejecución ni acceso al sistema de archivos.
+An ESM TypeScript library for reading SpriteStudio SSBP v3 files and evaluating their animations. It works in Node.js and browsers without runtime dependencies or file system access.
 
 ```ts
 import { readSsbp, evaluateFrame, SsbpPlayer } from '@ssbp/core';
 
-const response = await fetch('/personaje.ssbp');
+const response = await fetch('/character.ssbp');
 const file = readSsbp(await response.arrayBuffer());
 
 console.log(file.project.cells);
@@ -14,38 +14,38 @@ console.log(file.project.packs);
 
 const decoded = file.decodeFrame('body_anim', 'Idle', 0);
 const scene = evaluateFrame(file, 'body_anim', 'Idle', 0);
-// scene.commands: sprites en orden de dibujo, incluyendo instancias y partículas.
-// scene.parts: estados y matrices de las partes de la animación principal.
-// scene.userData: eventos del fotograma seleccionado.
+// scene.commands: sprites in draw order, including instances and particles.
+// scene.parts: states and matrices for parts in the main animation.
+// scene.userData: events for the selected frame.
 
 const player = new SsbpPlayer(file, 'body_anim', 'Idle');
 player.playing = true;
 player.loop = true;
-player.update(1 / 60); // El entorno proporciona los segundos transcurridos.
+player.update(1 / 60); // The host provides elapsed time in seconds.
 const nextScene = player.evaluate();
 ```
 
-En Node.js se puede pasar directamente el `Buffer` devuelto por `readFile`. También se aceptan `Uint8Array` que representen una región de otro buffer: todos los offsets son relativos a la región suministrada.
+In Node.js, you can pass the `Buffer` returned by `readFile` directly. `Uint8Array` views into larger buffers are also accepted: all offsets are relative to the supplied view.
 
 ## API
 
-- `readSsbp(buffer)` / `new SsbpFile(buffer)`: valida y lee el archivo.
-- `file.project`: celdas, atlas, packs, partes, animaciones, etiquetas y efectos.
-- `file.getAnimation(pack, animation)`: busca una animación o lanza `SsbpError`.
-- `file.decodeFrame(pack, animation, frame)`: estados locales en orden de dibujo y datos de usuario. Los fotogramas se indexan desde cero.
-- `evaluateFrame(file, pack, animation, frame, options?)`: aplica matrices y pivotes y evalúa instancias y efectos.
-- `textureCoordinates(command, width, height)`: convierte las coordenadas del atlas a UV normalizadas y aplica las operaciones UV del formato.
-- `SsbpPlayer`: `select`, `seek`, `update`, `evaluate`, `playing`, `loop` y `speed`.
-- `SsbpError`: error de formato con offset cuando se conoce.
+- `readSsbp(buffer)` / `new SsbpFile(buffer)`: validate and read a file.
+- `file.project`: cells, atlases, packs, parts, animations, labels, and effects.
+- `file.getAnimation(pack, animation)`: find an animation or throw `SsbpError`.
+- `file.decodeFrame(pack, animation, frame)`: local states in draw order and user data. Frames are indexed from zero.
+- `evaluateFrame(file, pack, animation, frame, options?)`: apply matrices and pivots and evaluate instances and effects.
+- `textureCoordinates(command, width, height)`: convert atlas coordinates to normalized UVs and apply the format's UV operations.
+- `SsbpPlayer`: `select`, `seek`, `update`, `evaluate`, `playing`, `loop`, and `speed`.
+- `SsbpError`: a format error, including the byte offset when known.
 
-`EvaluateOptions.hiddenParts` admite un conjunto de rutas como `body_anim/3` para ocultar partes y sus descendientes. Las instancias utilizan rutas anidadas, por ejemplo `body_anim/48/1`. `time` proporciona el tiempo absoluto en segundos para las instancias independientes y los efectos; por defecto se usa `frame / fps`. `seed` controla los efectos que no fijan su propia semilla.
+`EvaluateOptions.hiddenParts` accepts a set of paths such as `body_anim/3` to hide parts and their descendants. Instances use nested paths, such as `body_anim/48/1`. `time` supplies absolute time in seconds for independent instances and effects; it defaults to `frame / fps`. `seed` controls effects that do not specify their own seed.
 
-Las posiciones se devuelven en píxeles, con Y positivo hacia arriba y rotaciones en grados. Las matrices son de 4 × 4 en orden de columnas, como OpenGL. Los vértices de cada comando siguen el orden **superior izquierdo, superior derecho, inferior izquierdo, inferior derecho**; sus UV están inicialmente en píxeles del atlas. Los colores y la opacidad de los comandos están normalizados a 0–1. Cada comando conserva por separado el modo de mezcla entre sprites y el modo de mezcla de color.
+Positions are returned in pixels, with positive Y pointing up and rotations in degrees. Matrices are 4 × 4 in column-major order, matching OpenGL. Each command's vertices are ordered **top left, top right, bottom left, bottom right**; their UVs initially use atlas pixels. Command colors and opacity are normalized to 0–1. Each command keeps the sprite blend mode separate from the color blend mode.
 
-La biblioteca no carga imágenes: el consumidor resuelve `cellMap.imagePath` y proporciona al renderizador las dimensiones de cada atlas. Los objetos expuestos deben tratarse como datos de lectura; los fotogramas decodificados tienen una caché acotada.
+The library does not load images: the consumer resolves `cellMap.imagePath` and supplies each atlas's dimensions to the renderer. Exposed objects should be treated as read-only data; decoded frames use a bounded cache.
 
-## Compatibilidad
+## Compatibility
 
-El lector comprueba firma, versión, rangos, offsets, índices y ciclos de jerarquía. Los tamaños de estructura incluyen el alineamiento de cuatro bytes del C++ original. No se presupone que las partes estén almacenadas en orden de dibujo.
+The reader validates the signature, version, ranges, offsets, indices, and hierarchy cycles. Structure sizes include the original C++ runtime's four-byte alignment. Parts are not assumed to be stored in draw order.
 
-Solo se admite la versión 3. Los efectos incluyen los comandos 0–16 del runtime de referencia y simulación de medio fotograma con MT19937. La fidelidad frente a proyectos reales con efectos complejos todavía requiere contraste; las pruebas incluidas utilizan datos sintéticos. Se limitan la profundidad de instancias a 16, las cadenas de emisores a 8 y la simulación de efectos a 18000 fotogramas; superar un límite produce `SsbpError`.
+Only version 3 is supported. Effects include commands 0–16 from the reference runtime and half-frame simulation using MT19937. Fidelity against real projects with complex effects still needs validation; the included tests use synthetic data. Instance depth is limited to 16, emitter chains to 8, and effect simulation to 18000 frames. Exceeding a limit throws `SsbpError`.

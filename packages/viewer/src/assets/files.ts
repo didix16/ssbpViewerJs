@@ -49,7 +49,7 @@ async function textureAsset(map: CellMap, source: SourceFile): Promise<TextureAs
     };
   } catch {
     URL.revokeObjectURL(url);
-    throw new Error(`No se puede decodificar la textura ${source.path}`);
+    throw new Error(`Could not decode texture ${source.path}`);
   }
 }
 export async function loadProject(
@@ -58,7 +58,7 @@ export async function loadProject(
 ): Promise<LoadedProject> {
   const ssbps = sources.filter((f) => /\.ssbp$/i.test(f.path));
   const source = ssbps.find((f) => f.path === selectedPath) ?? ssbps[0];
-  if (!source) throw new Error('Incluye un archivo .ssbp junto con sus texturas PNG o WebP.');
+  if (!source) throw new Error('Include an .ssbp file and its PNG or WebP textures.');
   const file = readSsbp(await source.blob.arrayBuffer()),
     directory = source.path.replaceAll('\\', '/').split('/').slice(0, -1).join('/');
   const textures: TextureAsset[] = [],
@@ -106,7 +106,7 @@ export async function loadDemo(): Promise<LoadedProject> {
   const sources = await Promise.all(
     paths.map(async (path) => {
       const response = await fetch(`${import.meta.env.BASE_URL}demo/${path}`);
-      if (!response.ok) throw new Error('No se ha podido cargar el ejemplo de Veronica.');
+      if (!response.ok) throw new Error('Could not load the Veronica example.');
       return { path, blob: await response.blob() };
     }),
   );

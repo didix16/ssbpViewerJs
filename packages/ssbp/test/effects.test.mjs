@@ -97,5 +97,5 @@ test('unknown effect commands fail with a precise format error', () => {
     listOffset = bytes.readUInt32LE(nodeOffset + 16 + 12),
     behavior = bytes.readUInt32LE(listOffset);
   bytes.writeInt32LE(999, behavior);
-  assert.throws(() => readSsbp(bytes), /Comando de efecto desconocido: 999/);
+  assert.throws(() => readSsbp(bytes), /Unknown effect command: 999/);
 });

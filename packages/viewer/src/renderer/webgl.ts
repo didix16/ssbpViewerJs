@@ -77,7 +77,7 @@ export class WebGLRenderer {
     });
     if (!gl)
       throw new Error(
-        'Este navegador no permite WebGL 2. Activa la aceleración gráfica para abrir el visor.',
+        'This browser does not support WebGL 2. Enable hardware acceleration to open the viewer.',
       );
     this.gl = gl;
     this.program = this.createProgram();
@@ -96,7 +96,7 @@ export class WebGLRenderer {
   private contextLost = (event: Event) => {
     event.preventDefault();
     this.lost = true;
-    this.onError?.('Se ha perdido el contexto gráfico. Esperando a que el navegador lo restaure…');
+    this.onError?.('The graphics context was lost. Waiting for the browser to restore it…');
   };
   private contextRestored = () => {
     this.lost = false;
@@ -123,14 +123,14 @@ export class WebGLRenderer {
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         const error = gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
-        throw new Error(`Error en el shader: ${error}`);
+        throw new Error(`Shader error: ${error}`);
       }
       gl.attachShader(program, shader);
       gl.deleteShader(shader);
     }
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS))
-      throw new Error(`Error al enlazar WebGL: ${gl.getProgramInfoLog(program)}`);
+      throw new Error(`WebGL linking error: ${gl.getProgramInfoLog(program)}`);
     return program;
   }
   private setup(): void {
@@ -263,7 +263,7 @@ export class WebGLRenderer {
     return encodePng(width, height, data);
   }
   capturePixels(): { width: number; height: number; data: Uint8Array<ArrayBuffer> } {
-    if (this.lost) throw new Error('El contexto WebGL no está disponible para exportar.');
+    if (this.lost) throw new Error('The WebGL context is unavailable for export.');
     const gl = this.gl,
       pixels = new Uint8Array(this.canvas.width * this.canvas.height * 4);
     gl.readPixels(0, 0, this.canvas.width, this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

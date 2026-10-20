@@ -57,10 +57,13 @@ export class SsbpFile {
   constructor(input: ArrayBuffer | Uint8Array) {
     const r = (this.reader = new BinaryReader(input));
     r.span(0, 36);
-    if (r.u32(0) !== 0x42505353) throw new SsbpError('El archivo no tiene la firma SSBP', 0);
+    if (r.u32(0) !== 0x42505353) throw new SsbpError('Missing SSBP signature', 0);
     const version = r.u32(4);
     if (version !== 3)
-      throw new SsbpError(`Versión SSBP ${version} no compatible; se admite la versión 3`, 4);
+      throw new SsbpError(
+        `SSBP version ${version} is not supported; only version 3 is supported`,
+        4,
+      );
     const cellOffset = r.u32(16),
       packOffset = r.u32(20),
       effectOffset = r.u32(24);
@@ -125,7 +128,7 @@ export class SsbpFile {
           part.parentIndex < -1 ||
           part.parentIndex === j
         )
-          throw new SsbpError('Jerarquía de partes inválida', p);
+          throw new SsbpError('Invalid part hierarchy', p);
         return part;
       });
       // Check cycles even if the file does not store parents before children.
@@ -134,7 +137,7 @@ export class SsbpFile {
         let current = part;
         while (current.parentIndex >= 0) {
           if (seen.has(current.index))
-            throw new SsbpError('Ciclo en la jerarquía de partes', partsOffset);
+            throw new SsbpError('Cycle in the part hierarchy', partsOffset);
           seen.add(current.index);
           current = parts[current.parentIndex];
         }
@@ -148,7 +151,7 @@ export class SsbpFile {
         const frameCount = r.i16(a + 20),
           fps = r.i16(a + 22),
           labelCount = r.i16(a + 24);
-        if (frameCount <= 0 || fps <= 0) throw new SsbpError('Duración o FPS inválidos', a);
+        if (frameCount <= 0 || fps <= 0) throw new SsbpError('Invalid duration or FPS', a);
         r.table(initOffset, partCount, 80);
         r.table(frameOffset, frameCount, 4);
         if (userOffset) r.table(userOffset, frameCount, 4);
@@ -168,7 +171,7 @@ export class SsbpFile {
             state[name] = r.f32(d + 20 + n * 4);
           });
           if (state.index !== k || state.cellIndex < -1 || state.cellIndex >= cellCount)
-            throw new SsbpError('Estado inicial inválido', d);
+            throw new SsbpError('Invalid initial state', d);
           return state;
         });
         const frameOffsets = Array.from({ length: frameCount }, (_, k) => {
@@ -211,7 +214,7 @@ export class SsbpFile {
             type = cursor.i32(),
             layout = effectLayouts[type];
           if (layout === undefined)
-            throw new SsbpError(`Comando de efecto desconocido: ${type}`, cursor.offset - 4);
+            throw new SsbpError(`Unknown effect command: ${type}`, cursor.offset - 4);
           return {
             type,
             values: [...layout].map((t) =>
@@ -251,13 +254,13 @@ export class SsbpFile {
     const pack = this.project.packs.find((p) => p.name === packName);
     const animation = pack?.animations.find((a) => a.name === animationName);
     if (!pack || !animation)
-      throw new SsbpError(`Animación no encontrada: ${packName}/${animationName}`);
+      throw new SsbpError(`Animation not found: ${packName}/${animationName}`);
     return { pack, animation };
   }
   decodeFrame(packName: string, animationName: string, frame: number): DecodedFrame {
     const { pack, animation } = this.getAnimation(packName, animationName);
     if (!Number.isInteger(frame) || frame < 0 || frame >= animation.frameCount)
-      throw new SsbpError(`Fotograma fuera de rango: ${frame}`);
+      throw new SsbpError(`Frame out of range: ${frame}`);
     let cache = this.frameCache.get(animation);
     if (!cache) {
       cache = new Map();
@@ -273,10 +276,10 @@ export class SsbpFile {
         part = pack.parts[index],
         initial = animation.initial[index];
       if (!part || seen.has(index))
-        throw new SsbpError('Índice de parte inválido o duplicado', c.offset - 2);
+        throw new SsbpError('Invalid or duplicate part index', c.offset - 2);
       seen.add(index);
       const flags = c.u32();
-      if (flags & 0x80000000) throw new SsbpError('Flags de fotograma desconocidos', c.offset - 4);
+      if (flags & 0x80000000) throw new SsbpError('Unknown frame flags', c.offset - 4);
       const state: DecodedPart = {
         ...initial,
         part,
@@ -301,7 +304,7 @@ export class SsbpFile {
       };
       if (flags & F.Cell) state.cellIndex = c.i16();
       if (state.cellIndex < -1 || state.cellIndex >= this.project.cells.length)
-        throw new SsbpError('Referencia de celda inválida', c.offset);
+        throw new SsbpError('Invalid cell reference', c.offset);
       if (flags & F.X) state.x = c.i16() / 10;
       if (flags & F.Y) state.y = c.i16() / 10;
       if (flags & F.Z) state.z = c.i16() / 10;
@@ -365,7 +368,7 @@ export class SsbpFile {
         const flags = u.u16(),
           data: UserData = { partIndex: u.u16() };
         if (flags & ~15 || data.partIndex >= pack.parts.length)
-          throw new SsbpError('Datos de usuario inválidos', u.offset - 4);
+          throw new SsbpError('Invalid user data', u.offset - 4);
         if (flags & 1) data.integer = u.i32();
         if (flags & 2) data.rect = [u.i32(), u.i32(), u.i32(), u.i32()];
         if (flags & 4) data.point = [u.i32(), u.i32()];

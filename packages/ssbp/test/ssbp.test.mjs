@@ -42,13 +42,13 @@ test('rejects bad signatures, unsupported versions, truncated and out-of-bounds 
     assert.throws(() => readSsbp(sample.subarray(0, length)), SsbpError);
   const signature = Uint8Array.from(sample);
   signature[0] = 0;
-  assert.throws(() => readSsbp(signature), /firma SSBP/);
+  assert.throws(() => readSsbp(signature), /SSBP signature/);
   const version = Uint8Array.from(sample);
   version[4] = 99;
-  assert.throws(() => readSsbp(version), /Versión SSBP 99/);
+  assert.throws(() => readSsbp(version), /SSBP version 99/);
   const table = Uint8Array.from(sample);
   new DataView(table.buffer).setUint32(16, table.length - 1, true);
-  assert.throws(() => readSsbp(table), /fuera del archivo/);
+  assert.throws(() => readSsbp(table), /outside the file/);
 });
 
 test('rejects cyclic part hierarchies', () => {
@@ -56,7 +56,7 @@ test('rejects cyclic part hierarchies', () => {
     view = new DataView(corrupt.buffer);
   const parts = view.getUint32(view.getUint32(20, true) + 4, true);
   view.setInt16(parts + 6, 1, true);
-  assert.throws(() => readSsbp(corrupt), /Ciclo/);
+  assert.throws(() => readSsbp(corrupt), /Cycle/);
 });
 
 test('decodes and evaluates all 306 sample frames including nested cloak instances', () => {
@@ -86,10 +86,10 @@ test('decodes and evaluates all 306 sample frames including nested cloak instanc
 });
 
 test('validates frame ranges and missing animations', () => {
-  assert.throws(() => file.decodeFrame('body_anim', 'Idle', -1), /fuera de rango/);
-  assert.throws(() => file.decodeFrame('body_anim', 'Idle', 80), /fuera de rango/);
-  assert.throws(() => file.decodeFrame('body_anim', 'Idle', 0.5), /fuera de rango/);
-  assert.throws(() => file.getAnimation('body_anim', 'missing'), /no encontrada/);
+  assert.throws(() => file.decodeFrame('body_anim', 'Idle', -1), /out of range/);
+  assert.throws(() => file.decodeFrame('body_anim', 'Idle', 80), /out of range/);
+  assert.throws(() => file.decodeFrame('body_anim', 'Idle', 0.5), /out of range/);
+  assert.throws(() => file.getAnimation('body_anim', 'missing'), /not found/);
 });
 
 test('hiding a parent hides its entire subtree and instance commands', () => {

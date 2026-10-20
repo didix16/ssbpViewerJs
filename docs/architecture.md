@@ -1,70 +1,70 @@
-# Arquitectura y port del visor C++
+# Architecture and C++ viewer port
 
-## Flujo de datos
+## Data flow
 
 ```text
 ArrayBuffer / Uint8Array
           │
           ▼
-@ssbp/core: lector SSBP v3
+@ssbp/core: SSBP v3 reader
           │  Project / AnimePack / Animation / CellMap
           ▼
 decodeFrame → evaluateFrame / SsbpPlayer
-          │  DrawCommand[]: geometría, atlas, UV, colores, opacidad
+          │  DrawCommand[]: geometry, atlas, UVs, colors, opacity
           ▼
 @ssbp/viewer: WebGLRenderer
-          │  HTMLImageElement → textura WebGL
+          │  HTMLImageElement → WebGL texture
           ▼
-WebGL 2 + GLSL ES 3.00 → pantalla / PNG con alfa
+WebGL 2 + GLSL ES 3.00 → screen / PNG with alpha
 ```
 
-El renderizador y React pertenecen exclusivamente al paquete del visor. La biblioteca no importa tipos del DOM ni utiliza APIs de navegador. Las imágenes del ejemplo se copian a `packages/viewer/public/demo` sin modificar los originales.
+The renderer and React belong exclusively to the viewer package. The library does not import DOM types or use browser APIs. Example images are copied to `packages/viewer/public/demo` without modifying the originals.
 
-## Correspondencias con el código original
+## Mapping to the original code
 
-| C++                                    | TypeScript                                                 |
-| -------------------------------------- | ---------------------------------------------------------- |
-| `SS5PlayerData.h`                      | `packages/ssbp/src/model.ts`, `reader.ts`                  |
-| `ToPointer`, `DataArrayReader`         | `packages/ssbp/src/binary.ts`                              |
-| `Player::setFrame`, matrices y pivotes | `packages/ssbp/src/evaluate.ts`, `math.ts`                 |
-| Temporización de `Player`              | `packages/ssbp/src/player.ts`                              |
-| Caché de efectos y comandos            | `reader.ts`, `effects.ts`                                  |
-| `Texture`, `SSTextureLoad`             | `packages/viewer/src/assets/files.ts`, `renderer/webgl.ts` |
-| `SSDrawSprite`, shaders OpenGL         | `packages/viewer/src/renderer/webgl.ts`                    |
-| Captura mediante `glReadPixels`        | `renderer/webgl.ts`, `renderer/png.ts`                     |
+| C++                                      | TypeScript                                                 |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `SS5PlayerData.h`                        | `packages/ssbp/src/model.ts`, `reader.ts`                  |
+| `ToPointer`, `DataArrayReader`           | `packages/ssbp/src/binary.ts`                              |
+| `Player::setFrame`, matrices, and pivots | `packages/ssbp/src/evaluate.ts`, `math.ts`                 |
+| `Player` timing                          | `packages/ssbp/src/player.ts`                              |
+| Effect cache and commands                | `reader.ts`, `effects.ts`                                  |
+| `Texture`, `SSTextureLoad`               | `packages/viewer/src/assets/files.ts`, `renderer/webgl.ts` |
+| `SSDrawSprite`, OpenGL shaders           | `packages/viewer/src/renderer/webgl.ts`                    |
+| Capture using `glReadPixels`             | `renderer/webgl.ts`, `renderer/png.ts`                     |
 
-## Detalles importantes del formato
+## Important format details
 
-- Firma `0x42505353`, versión 3 y lectura little-endian.
-- Los offsets de 32 bits apuntan al inicio del archivo, no al campo que los contiene.
-- Las estructuras C++ tienen padding: `ProjectData` ocupa 36 bytes, `Cell` 28, `PartData` 28, `AnimationData` 32 y `AnimationInitialData` 80.
-- Un fotograma comienza con una tabla de partes en orden de dibujo. Cada parte contiene índice, flags y valores opcionales, con sus valores iniciales como respaldo.
-- Las posiciones se almacenan como enteros con una escala de diez unidades por píxel. Las deformaciones de vértices tienen su propia escala y no se dividen por `DOT`.
-- Las matrices sin desplazamiento de pivote se heredan por los hijos. El desplazamiento del pivote se aplica solo a la geometría del sprite.
-- Los parámetros de instancia se leen después de deformaciones y colores. Se conservan los flags de bucle infinito, inverso, ping-pong e independiente.
-- Las animaciones independientes se evalúan con tiempo explícito y semilla determinista, lo que permite avanzar y retroceder sin depender de las evaluaciones anteriores. Su fase puede diferir de una captura del C++ cuya instancia llevaba otro tiempo reproduciéndose.
-- Las rutas de imagen pueden usar separadores Windows, subcarpetas y referencias a directorios superiores. El cargador busca primero por ruta y después por nombre solo si es inequívoco.
+- Signature `0x42505353`, version 3, and little-endian reads.
+- The 32-bit offsets point to the beginning of the file, not to the field containing them.
+- C++ structures include padding: `ProjectData` occupies 36 bytes, `Cell` 28, `PartData` 28, `AnimationData` 32, and `AnimationInitialData` 80.
+- A frame starts with a table of parts in draw order. Each part contains an index, flags, and optional values, falling back to its initial values.
+- Positions are stored as integers with ten units per pixel. Vertex deformation values use their own scale and are not divided by `DOT`.
+- Children inherit matrices without pivot offsets. Pivot offsets affect only the sprite's geometry.
+- Instance parameters are read after vertex deformation and colors. Infinite loop, reverse, ping-pong, and independent playback flags are preserved.
+- Independent animations are evaluated with explicit time and a deterministic seed, allowing seeking without depending on previous evaluations. Their phase may differ from a C++ screenshot whose instance had been playing for a different length of time.
+- Image paths may contain Windows separators, subdirectories, and parent directory references. The loader tries paths first, then filenames only when the match is unambiguous.
 
-## Renderizado
+## Rendering
 
-El visor solicita `webgl2` con alfa premultiplicado. Las texturas se cargan sin premultiplicar y sin invertir Y; los UV del formato usan origen superior izquierdo. El shader devuelve color premultiplicado y el mezclado conserva correctamente el alfa del framebuffer. Los modos mezcla, multiplicar, sumar y restar se configuran independientemente de las mezclas de color por vértice.
+The viewer requests `webgl2` with premultiplied alpha. Textures are uploaded without premultiplication or Y flipping; the format's UVs use a top-left origin. The shader outputs premultiplied color, and blending preserves the framebuffer's alpha. Mix, multiply, add, and subtract modes are configured separately from per-vertex color blending.
 
-Cada sprite utiliza los mismos dos triángulos que el quad C++. El wireframe usa `LINE_LOOP`, porque WebGL no expone `glPolygonMode`. Las preferencias de repetición y filtrado proceden de los atlas SSBP. Se restauran shaders, buffers y texturas si el navegador recupera un contexto perdido.
+Each sprite uses the same two triangles as the C++ quad. Wireframe rendering uses `LINE_LOOP`, because WebGL does not expose `glPolygonMode`. Wrap and filter settings come from the SSBP atlases. Shaders, buffers, and textures are restored when the browser recovers a lost graphics context.
 
-La exportación vuelve a dibujar el fotograma, lee el framebuffer, invierte las filas y convierte el alfa premultiplicado a RGBA recto. El codificador PNG utiliza `CompressionStream` y CRC32, sin un contexto Canvas 2D. La cuadrícula, los ejes y los paneles son elementos de interfaz y no se exportan.
+PNG export redraws the frame, reads the framebuffer, reverses the rows, and converts premultiplied alpha to straight RGBA. The PNG encoder uses `CompressionStream` and CRC32, without a Canvas 2D context. The grid, axes, and panels are interface elements and are not exported.
 
-Para GIF se crea un segundo contexto WebGL con el encuadre actual y se evalúan todos los fotogramas sin mover el reproductor principal. Un worker empaquetado localmente con `gifenc` invierte las filas, convierte el alfa, reduce la paleta a 255 colores opacos y reserva el índice cero para transparencia. Cada fotograma se elimina antes de dibujar el siguiente (`dispose = 2`) para evitar rastros. Los retardos se calculan acumulando el redondeo a centésimas; a 30 FPS se alternan 30 y 40 ms. Se conserva la velocidad y el sentido de reproducción; el ajuste de bucle controla la extensión de repetición del GIF. La cancelación termina el worker y libera el contexto auxiliar.
+GIF export creates a second WebGL context with the current framing and evaluates every frame without moving the main player. A locally bundled `gifenc` worker reverses rows, converts alpha, reduces the palette to 255 opaque colors, and reserves index zero for transparency. Each frame is cleared before drawing the next (`dispose = 2`) to avoid trails. Frame delays accumulate rounding to hundredths of a second; at 30 FPS, delays alternate between 30 and 40 ms. Playback speed and direction are preserved; the loop setting controls the GIF's repeat extension. Cancellation terminates the worker and releases the auxiliary context.
 
 ## GitHub Pages
 
-El workflow `.github/workflows/pages.yml` instala con `npm ci`, ejecuta las pruebas y compila ambos paquetes. Solo publica el contenido estático de `packages/viewer/dist`, mediante el artefacto y la acción oficial de Pages. El trabajo de despliegue tiene permisos `pages: write` e `id-token: write`; el trabajo de compilación solo puede leer el repositorio. El despliegue se restringe a la rama predeterminada y se puede iniciar manualmente.
+The `.github/workflows/pages.yml` workflow installs dependencies using `npm ci`, runs tests, and builds both packages. It publishes only the static contents of `packages/viewer/dist`, using an artifact and the official Pages action. The deployment job has `pages: write` and `id-token: write` permissions; the build job can only read the repository. Deployment is restricted to the default branch and can be triggered manually.
 
-El `base` relativo de Vite se aplica al HTML, los assets, las imágenes de ejemplo y la URL del worker. `scripts/pages-smoke.mjs` sirve el resultado compilado bajo `/ssbpViewerJs/` y prueba la descarga y el contenido de GIF reales; así se verifican los recursos con la misma estructura de rutas que Pages.
+Vite's relative `base` applies to HTML, assets, example images, and the worker URL. `scripts/pages-smoke.mjs` serves the production build under `/ssbpViewerJs/` and tests downloads and actual GIF contents, verifying resources with the same path structure used by Pages.
 
-## Verificación y límites
+## Verification and limitations
 
-Las pruebas unitarias recorren todos los fotogramas del ejemplo, validan buffers con offset, archivos truncados, índices y ciclos, controles de tiempo, instancias, ocultación de subárboles y UV. Las pruebas sintéticas de efectos verifican su lectura binaria y evolución determinista. Las pruebas de Chromium comprueban el renderizado, un PNG con alfa, controles, atlas y carga de archivos, ausencia de solicitudes externas y ausencia de desbordamiento horizontal en móvil.
+Unit tests cover every frame in the example, buffer views with offsets, truncated files, indices and cycles, timing controls, instances, hidden subtrees, and UVs. Synthetic effect tests verify binary reading and deterministic behavior. Chromium tests check rendering, a PNG with alpha, controls, atlases, file loading, the absence of external requests, and the absence of horizontal overflow on mobile.
 
-`test:browser` también guarda `cpp-camera.png`, renderizado con la cámara inicial de 512 × 512 del código C++, para contrastarlo con la captura de referencia. Las posiciones de cámara de una captura manual y la fase de las instancias independientes pueden variar.
+`test:browser` also saves `cpp-camera.png`, rendered with the C++ code's initial 512 × 512 camera, for comparison with the reference screenshot. Camera positions in manually captured screenshots and the phase of independent instances may vary.
 
-El ejemplo no permite contrastar partículas con una animación real. El simulador de efectos es una implementación determinista de los comportamientos disponibles; la equivalencia exacta del calendario de emisión, de la semilla y de emisores anidados con todos los proyectos C++ queda pendiente de fixtures reales. Las partes de texto reservadas no se dibujan. Las versiones de SSBP distintas de la 3 se rechazan explícitamente.
+The example does not allow particles to be checked against a real animation. The effect simulator implements the available behaviors deterministically; exact equivalence of emission timing, seeds, and nested emitters across all C++ projects still needs real fixtures. Reserved text parts are not rendered. SSBP versions other than 3 are explicitly rejected.

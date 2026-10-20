@@ -83,13 +83,12 @@ export function evaluateEffect(
   seed: number,
 ): DrawCommand[] {
   if (frame < 0 || !Number.isFinite(frame)) return [];
-  if (frame > 18000)
-    throw new SsbpError('El efecto supera el límite de simulación de 18000 fotogramas');
+  if (frame > 18000) throw new SsbpError('The effect exceeds the simulation limit of 18000 frames');
   const emitters: Emitter[] = [],
     particles: Particle[] = [];
   const createEmitter = (node: EffectNode, parent?: Particle, depth = 0) => {
     if (depth > 8 || emitters.length > 4096)
-      throw new SsbpError('El efecto supera el límite de emisores');
+      throw new SsbpError('The effect exceeds the emitter limit');
     const chosen = values(node, 2)?.[0] ?? (effect.lockSeed ? effect.seed : seed);
     const rng = new Random(chosen >= 0 && chosen < 32 ? seedTable[chosen] : chosen);
     for (let i = 0; i < emitters.length % 9; i++) rng.next();
@@ -186,7 +185,7 @@ export function evaluateEffect(
         if (child)
           for (let b = 0; b < basic[2] && count + b < basic[1]; b++) {
             if (particles.length >= 100000)
-              throw new SsbpError('El efecto supera el límite de partículas');
+              throw new SsbpError('The effect exceeds the particle limit');
             spawn(e, child);
           }
         e.next += Math.max(0.5, basic[3]);

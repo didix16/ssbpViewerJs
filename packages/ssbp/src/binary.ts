@@ -25,12 +25,11 @@ export class BinaryReader {
       length < 0 ||
       offset > this.bytes.length - length
     )
-      throw new SsbpError(`Datos fuera del archivo: se necesitan ${length} bytes`, offset);
+      throw new SsbpError(`Read outside the file: required ${length} bytes`, offset);
   }
   table(offset: number, count: number, size: number): void {
-    if (count < 0 || !Number.isInteger(count))
-      throw new SsbpError('Cantidad de elementos inválida', offset);
-    if (count && offset < 36) throw new SsbpError('Referencia a tabla inválida', offset);
+    if (count < 0 || !Number.isInteger(count)) throw new SsbpError('Invalid element count', offset);
+    if (count && offset < 36) throw new SsbpError('Invalid table reference', offset);
     this.span(offset, count * size);
   }
   u16(o: number): number {
@@ -52,7 +51,7 @@ export class BinaryReader {
   f32(o: number): number {
     this.span(o, 4);
     const n = this.view.getFloat32(o, true);
-    if (!Number.isFinite(n)) throw new SsbpError('Valor flotante inválido', o);
+    if (!Number.isFinite(n)) throw new SsbpError('Invalid floating-point value', o);
     return n;
   }
   string(o: number): string {
@@ -62,14 +61,14 @@ export class BinaryReader {
     this.span(o, 1);
     let end = o;
     while (end < this.bytes.length && this.bytes[end] !== 0 && end - o < 1048576) end++;
-    if (this.bytes[end] !== 0) throw new SsbpError('Cadena sin terminador', o);
+    if (this.bytes[end] !== 0) throw new SsbpError('Unterminated string', o);
     let escaped = '';
     for (let i = o; i < end; i++) escaped += `%${this.bytes[i].toString(16).padStart(2, '0')}`;
     let value: string;
     try {
       value = decodeURIComponent(escaped);
     } catch {
-      throw new SsbpError('Cadena UTF-8 inválida', o);
+      throw new SsbpError('Invalid UTF-8 string', o);
     }
     this.strings.set(o, value);
     return value;

@@ -151,7 +151,7 @@ function evaluate(
 ): EvaluatedFrame {
   const key = `${packName}/${animationName}`;
   if (depth > 16 || stack.includes(key))
-    throw new SsbpError(`Referencia de instancia circular o demasiado profunda: ${key}`);
+    throw new SsbpError(`Circular or excessively deep instance reference: ${key}`);
   const { pack, animation } = file.getAnimation(packName, animationName),
     decoded = file.decodeFrame(packName, animationName, frame);
   const byIndex = new Map(decoded.parts.map((s) => [s.part.index, s]));

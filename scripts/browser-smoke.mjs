@@ -43,7 +43,7 @@ try {
     if (server.exitCode !== null) break;
     await delay(100);
   }
-  assert.ok(ready, `El servidor no arrancó: ${serverOutput}`);
+  assert.ok(ready, `The server did not start: ${serverOutput}`);
   browser = await chromium.launch({
     headless: true,
     executablePath: process.env.SSBP_BROWSER_PATH || undefined,
@@ -68,8 +68,8 @@ try {
       network.push(r.url());
   });
   await page.goto(`http://127.0.0.1:${port}/`);
-  await page.getByRole('button', { name: 'Pausar animación', exact: true }).click();
-  await page.getByRole('spinbutton', { name: 'Fotograma actual' }).fill('8');
+  await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Current frame' }).fill('8');
   await page.getByRole('heading', { name: 'SSBP Viewer', exact: true }).click();
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await page.screenshot({
@@ -81,7 +81,7 @@ try {
 
   // Export a real WebGL frame and validate the PNG scanlines and alpha.
   const downloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Exportar PNG', exact: true }).click();
+  await page.getByRole('button', { name: 'Export PNG', exact: true }).click();
   const download = await downloadEvent,
     pngPath = new URL('../test-results/Attack2_Loop_8.png', import.meta.url);
   assert.match(download.suggestedFilename(), /Attack2_Loop_008\.png$/);
@@ -113,15 +113,15 @@ try {
   assert.ok(transparent > (width * height) / 2 && opaque > 1000 && partial > 100);
 
   // Search, animation selection, seeking, visibility, view controls and keyboard.
-  await page.getByRole('textbox', { name: 'Buscar animación' }).fill('idle');
+  await page.getByRole('textbox', { name: 'Search animations' }).fill('idle');
   assert.equal(await page.locator('.animation-item').count(), 1);
   await page.getByRole('button', { name: /^Idle/ }).click();
-  await page.getByRole('button', { name: 'Pausar animación', exact: true }).click();
-  await page.getByRole('spinbutton', { name: 'Fotograma actual' }).fill('10');
-  await page.getByRole('button', { name: 'Fotograma siguiente', exact: true }).click();
-  assert.equal(await page.getByRole('spinbutton', { name: 'Fotograma actual' }).inputValue(), '11');
-  await page.getByRole('button', { name: 'Ocultar root', exact: true }).click();
-  await page.getByRole('tab', { name: 'Datos', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Current frame' }).fill('10');
+  await page.getByRole('button', { name: 'Next frame', exact: true }).click();
+  assert.equal(await page.getByRole('spinbutton', { name: 'Current frame' }).inputValue(), '11');
+  await page.getByRole('button', { name: 'Hide root', exact: true }).click();
+  await page.getByRole('tab', { name: 'Data', exact: true }).click();
   assert.equal(
     await page
       .locator('.property-list>div')
@@ -131,22 +131,22 @@ try {
     '0',
   );
   await page.getByRole('tab', { name: 'Inspector', exact: true }).click();
-  await page.getByRole('button', { name: 'Mostrar root', exact: true }).click();
-  await page.getByRole('button', { name: 'Invertir horizontalmente', exact: true }).click();
+  await page.getByRole('button', { name: 'Show root', exact: true }).click();
+  await page.getByRole('button', { name: 'Flip horizontally', exact: true }).click();
   assert.equal(
     await page
-      .getByRole('button', { name: 'Invertir horizontalmente', exact: true })
+      .getByRole('button', { name: 'Flip horizontally', exact: true })
       .getAttribute('aria-pressed'),
     'true',
   );
-  await page.getByRole('button', { name: 'Invertir horizontalmente', exact: true }).click();
-  await page.getByRole('checkbox', { name: 'Cuadrícula', exact: true }).uncheck();
+  await page.getByRole('button', { name: 'Flip horizontally', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Grid', exact: true }).uncheck();
   assert.ok(!(await page.locator('.stage').getAttribute('class')).includes('checker'));
-  await page.getByRole('checkbox', { name: 'Cuadrícula', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Grid', exact: true }).check();
 
-  await page.getByRole('tab', { name: 'Texturas', exact: true }).click();
-  await page.getByRole('button', { name: 'Inspeccionar Body_AllTex.png', exact: true }).click();
-  await page.getByRole('checkbox', { name: 'Mostrar celdas', exact: true }).check();
+  await page.getByRole('tab', { name: 'Textures', exact: true }).click();
+  await page.getByRole('button', { name: 'Inspect Body_AllTex.png', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Show cells', exact: true }).check();
   assert.equal(await page.locator('.cell-overlay rect').count(), 43);
   await page.screenshot({
     path: new URL('../test-results/viewer-atlas.png', import.meta.url).pathname.replace(
@@ -156,8 +156,8 @@ try {
   });
   await page.keyboard.press('Escape');
   assert.equal(await page.getByRole('dialog').count(), 0);
-  await page.getByRole('button', { name: /Atajos/ }).click();
-  assert.ok(await page.getByRole('dialog', { name: 'Atajos de teclado' }).isVisible());
+  await page.getByRole('button', { name: /Shortcuts/ }).click();
+  assert.ok(await page.getByRole('dialog', { name: 'Keyboard shortcuts' }).isVisible());
   await page.keyboard.press('Escape');
 
   // Local file loading works with the misleading .png extensions too.
@@ -170,10 +170,10 @@ try {
         new URL('../ch00_04_Veronica_F_Normal/tex/Option_Tex.png', import.meta.url),
       ].map((u) => u.pathname.replace(/^\/(?=[A-Za-z]:)/, '')),
     );
-  await page.getByRole('button', { name: 'Pausar animación', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
   await page.getByRole('tab', { name: 'Inspector', exact: true }).click();
   assert.equal(
-    await page.getByRole('button', { name: 'Inspeccionar Body_AllTex.png', exact: true }).count(),
+    await page.getByRole('button', { name: 'Inspect Body_AllTex.png', exact: true }).count(),
     1,
   );
 
@@ -218,10 +218,10 @@ try {
     fullPage: true,
   });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
-  assert.deepEqual(network, [], 'El visor debe funcionar sin peticiones a servicios externos');
+  assert.deepEqual(network, [], 'The viewer must work without requests to external services');
   assert.deepEqual(errors, []);
   console.log(
-    `Browser OK: WebGL 2, PNG ${width}×${height} con alfa, reproducción, búsqueda, capas, atlas, archivos locales y vista móvil.`,
+    `Browser OK: WebGL 2, PNG ${width}×${height} with alpha, playback, search, layers, atlases, local files, and mobile layout.`,
   );
 } finally {
   await browser?.close();
